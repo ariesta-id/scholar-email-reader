@@ -1,1 +1,1 @@
-uv run --env-file .env read-email.py
+uv run --env-file .env read_email.py
