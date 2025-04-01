@@ -7,28 +7,16 @@
 # ///
 
 from llm_interface import get_llm_response
+import warnings
 
-USER_CRITERIA = """Using remote sensing and machine learning to monitor or predict the impact of urbanization on air quality. Air quality can be assessed using various pollutants such as PM2.5, NOx, and O3. Any scientific articles that may provide information on dataset sources can be relevant.
-Factors of impact on air quality:
-- climate
-- industrial activity
-- transportation patterns
-- green space distribution
-- population density
-Area of study: urban areas in temperate climates"""
+try:
+    # Attempt to import user-specific prompts
+    from prompts.user_prompt import USER_CRITERIA, CLASSIFY_PROMPT, PREFILL
+except ModuleNotFoundError:
+    # Fallback to sample prompts with warning
+    warnings.warn("Using sample prompts - Create prompts/user_prompt.py with your own criteria", UserWarning)
+    from prompts.sample_user_prompt import USER_CRITERIA, CLASSIFY_PROMPT, PREFILL
 
-CLASSIFY_PROMPT = """Determine if this academic article might be relevant based on the user's research interests. Consider the title and abstract. Reply ONLY with:
-- "Yes" if clearly relevant
-- "No" if not relevant
-- "Unsure" if unsure
-
-User's research focus: {user_criteria}
-
-Article Title: {title}
-Abstract Excerpt: {abstract}
-"""
-
-PREFILL = """Sure, I will answer with just Yes, No, or n.a. regarding the relevance of the article with your research focus. My answer is: """
 
 def classify_article_relevance(title, abstract):
     """Classify article relevance using LLM. Returns 'Yes', 'No' or 'n.a.'"""
@@ -39,8 +27,8 @@ def classify_article_relevance(title, abstract):
     )
     print(f"\nClassifying: {title[:80]}...")  # Truncate very long titles
     message, first_token, first_logprob, first_prob = get_llm_response(formatted_prompt, prefill=PREFILL, logprobs=True, top_logprobs=5, temperature=0)
-    print(f"LLM classification: '{message.strip()}'")
-    print(first_token, first_logprob, first_prob)
+    # print(f"LLM classification: '{message.strip()}'")
+    # print(first_token, first_logprob, first_prob)
     return message.strip(), first_prob
 
 # Example usage
