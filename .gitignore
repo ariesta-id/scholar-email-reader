@@ -5,3 +5,5 @@ token.json
 __pycache__/
 .env
 llm_classify_article_local.py
+local-run.sh
+testing.sh

@@ -2,6 +2,7 @@
 # requires-python = ">=3.11"
 # dependencies = [
 #     "openai",
+#     "numpy",
 # ]
 # ///
 
@@ -18,8 +19,8 @@ Area of study: urban areas in temperate climates"""
 
 CLASSIFY_PROMPT = """Determine if this academic article might be relevant based on the user's research interests. Consider the title and abstract. Reply ONLY with:
 - "Yes" if clearly relevant
-- "No" if clearly irrelevants
-- "n.a." if cannot determine
+- "No" if not relevant
+- "Unsure" if unsure
 
 User's research focus: {user_criteria}
 
@@ -37,9 +38,10 @@ def classify_article_relevance(title, abstract):
         abstract=abstract
     )
     print(f"\nClassifying: {title[:80]}...")  # Truncate very long titles
-    response = get_llm_response(formatted_prompt, prefill=PREFILL)
-    print(f"LLM classification: '{response.strip()}'")
-    return response.strip()
+    message, first_token, first_logprob, first_prob = get_llm_response(formatted_prompt, prefill=PREFILL, logprobs=True, top_logprobs=5, temperature=0)
+    print(f"LLM classification: '{message.strip()}'")
+    print(first_token, first_logprob, first_prob)
+    return message.strip(), first_prob
 
 # Example usage
 if __name__ == "__main__":
@@ -47,6 +49,6 @@ if __name__ == "__main__":
     sample_abstract = "This study examines temperature-driven changes in marine biodiversity..."
     
     print("\n=== Example Classification ===")
-    result = classify_article_relevance(sample_title, sample_abstract)
-    print(f"Final decision: [{result}]")
+    result, prob = classify_article_relevance(sample_title, sample_abstract)
+    print(f"Final decision: [{result}] {prob}%")
     print("="*30)
