@@ -8,3 +8,4 @@ llm_classify_article_local.py
 local-run.sh
 testing.sh
 prompts/user_prompt.py
+chatcompletion_result.py

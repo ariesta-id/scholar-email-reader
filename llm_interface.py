@@ -9,20 +9,14 @@ from openai import OpenAI
 import numpy as np
 import os
 
-# MODEL = "accounts/fireworks/models/deepseek-v3-0324"
-MODEL = "accounts/fireworks/models/llama-v3p1-405b-instruct"
+MODEL = "accounts/fireworks/models/deepseek-v3-0324"
+# MODEL = "accounts/fireworks/models/llama-v3p1-405b-instruct"
 # MODEL = "accounts/fireworks/models/qwen2p5-72b-instruct"
 
-def get_llm_response(prompt, prefill=None, system_message="", **kwargs):
-    """Get LLM response using Fireworks.ai's DeepSeek-v3 model.
+def get_llm_response(messages, **kwargs):
+    """Get LLM response using `MODEL` on Fireworks.ai.
 
-    Args:
-        prompt: The user's input prompt
-        prefill: Optional assistant prefill content
-        system_message: Optional system message
-        **kwargs: Additional parameters to pass to the API call
-
-    Raises:
+        Raises:
         ValueError: If LLM_ environment variables are missing
         RuntimeError: For API connection errors
     """
@@ -47,12 +41,7 @@ def get_llm_response(prompt, prefill=None, system_message="", **kwargs):
     # Existing API call logic remains the same
     try:
         client = OpenAI(api_key=api_key, base_url=base_url)
-        messages = [
-            {"role": "system", "content": system_message},
-            {"role": "user", "content": prompt},
-        ]
-        if prefill is not None:
-            messages.append({"role": "assistant", "content": prefill})
+
         chat_completion = client.chat.completions.create(
             model=MODEL, messages=messages, **kwargs
         )
