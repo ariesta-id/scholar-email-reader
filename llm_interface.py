@@ -47,13 +47,15 @@ def get_llm_response(messages, **kwargs):
         )
 
         message_content = chat_completion.choices[0].message.content
+        prompt_token = chat_completion.usage.prompt_tokens
+        completion_token = chat_completion.usage.completion_tokens
         if kwargs.get('logprobs', False):
             top_tokens = chat_completion.choices[0].logprobs.content[0].top_logprobs
             first_token = top_tokens[0].token
             first_logprob = top_tokens[0].logprob
             first_prob = np.round(np.exp(first_logprob)*100,2)
-            return message_content, first_token, first_logprob, first_prob
-        return message_content, None, None, None
+            return message_content, prompt_token, completion_token, first_token, first_logprob, first_prob
+        return message_content, prompt_token, completion_token, None, None, None
     except Exception as e:
         raise RuntimeError(f"API request failed: {str(e)}") from e
 
@@ -67,15 +69,15 @@ if __name__ == "__main__":
         top_logprobs=2,
         temperature=0,
     )
-    print("LLM Response:", response)
+    print("List: ", response)
     response = get_llm_response(
         prompt,
         logprobs=True,
         top_logprobs=2,
         temperature=0,
     )
-    print("LLM Response:", response)
+    print("List: ", response)
     response = get_llm_response(
         prompt,
     )
-    print("LLM Response:", response)
+    print("List: ", response)

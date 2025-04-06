@@ -39,6 +39,8 @@ except ModuleNotFoundError:
 def classify_article_relevance(title, abstract, use_cot=False):
     """Classify article relevance using LLM. Returns LLM response"""
     print(f"\nClassifying: {title[:80]}...")  # Truncate very long titles
+    prompt_tokens = 0
+    completion_tokens = 0
     if not (use_cot):
         formatted_prompt = direct_classify_prompt.format(
             user_criteria=USER_CRITERIA, title=title, abstract=abstract
@@ -48,7 +50,7 @@ def classify_article_relevance(title, abstract, use_cot=False):
             {"role": "user", "content": formatted_prompt},
             {"role": "assistant", "content": PREFILL},
         ]
-        message, first_token, first_logprob, first_prob = get_llm_response(
+        message, prompt_token, completion_token, _, _, first_prob = get_llm_response(
             messages, logprobs=True, top_logprobs=5, temperature=0
         )
     else:
@@ -59,22 +61,25 @@ def classify_article_relevance(title, abstract, use_cot=False):
             {"role": "system", "content": ""},
             {"role": "user", "content": cot_prep_prompt},
         ]
-        cot_message, first_token, first_logprob, first_prob = get_llm_response(
+        cot_message, cot_prompt_token, cot_completion_token, _, _, _ = get_llm_response(
             messages, temperature=0
         )
-        print(f"COT: {cot_message}")
+        # print(f"COT: {cot_message}")
+        prompt_tokens += cot_prompt_token
+        completion_tokens += cot_completion_token
         messages += [
             {"role": "assistant", "content": cot_message},
             {"role": "user", "content": COT_CONFIRM},
             {"role": "assistant", "content": COT_PREFILL},
         ]
-        message, first_token, first_logprob, first_prob = get_llm_response(
+        message, prompt_token, completion_token, _, _, first_prob = get_llm_response(
             messages, logprobs=True, top_logprobs=5, temperature=0
         )
-
+    prompt_tokens += prompt_token
+    completion_tokens += completion_token
     # print(f"LLM classification: '{message.strip()}'")
     # print(first_token, first_logprob, first_prob)
-    return message.strip(), first_prob
+    return message.strip(), first_prob, prompt_tokens, completion_tokens
 
 
 # Example usage
@@ -85,11 +90,17 @@ if __name__ == "__main__":
     )
 
     print("\n=== Example Classification ===")
-    result, prob = classify_article_relevance(sample_title, sample_abstract)
+    result, prob, prompt_tokens, completion_tokens = classify_article_relevance(sample_title, sample_abstract)
     print(f"Final decision: {result} {prob}%")
+    print(f"Input tokens: {prompt_tokens}")
+    print(f"Output tokens: {completion_tokens}")
     print()
 
     print("\n=== Example Classification with COT===")
-    result, prob = classify_article_relevance(sample_title, sample_abstract, use_cot=True)
+    result, prob, prompt_tokens, completion_tokens = classify_article_relevance(
+        sample_title, sample_abstract, use_cot=True
+    )
     print(f"Final decision: {result} {prob}%")
+    print(f"Input tokens: {prompt_tokens}")
+    print(f"Output tokens: {completion_tokens}")
     print("=" * 30)

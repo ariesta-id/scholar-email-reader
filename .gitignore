@@ -9,3 +9,4 @@ local-run.sh
 testing.sh
 prompts/user_prompt.py
 chatcompletion_result.py
+prompts/user_prompt*.py
